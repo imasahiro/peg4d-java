@@ -7,7 +7,7 @@
 
 // #define PEGVM_USE_CONDBRANCH
 #define PEGVM_USE_CHARRANGE
-// #define PEGVM_USE_MAPPEDCHOISE_DIRECT_JMP
+#define PEGVM_USE_MAPPEDCHOISE_DIRECT_JMP
 
 typedef bitset_t *bitset_ptr_t;
 
