@@ -63,7 +63,6 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
 #else
 #define LEFT context->left
 #endif
-  register const char *cur = context->inputs + context->pos;
 #if 0
 #define MPOOL pool
   MemoryPool pool = context->mpool;
@@ -74,6 +73,7 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
   const char *Reg1 = 0;
   const char *Reg2 = 0;
   const char *Reg3 = 0;
+  register const char *cur = context->inputs + context->pos;
   register int failflag = 0;
   register const PegVMInstruction *pc;
   ParsingObject *osp;
@@ -122,7 +122,6 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
     }
 #endif
   }
-
   OP(CONDTRUE) {
     PegVMInstruction *dst = ((ICONDBRANCH *)pc)->jump;
     if (failflag == 1) {
@@ -410,7 +409,7 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
   }
   OP(NOTANY) {
     INOTANY *inst = (INOTANY *)pc;
-    if (*cur != 0) {
+    if (likely(*cur != 0)) {
       failflag = 1;
       JUMP(inst->jump);
     }
@@ -491,13 +490,14 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
   OP(ZEROMORECHARSET) {
     IZEROMORECHARSET *inst = (IZEROMORECHARSET *)pc;
 L_head:;
-    if (bitset_get(inst->set, *cur)) {
+    if (bitset_get(inst->set, (unsigned)*cur)) {
       cur++;
       goto L_head;
     }
     DISPATCH_NEXT;
   }
   OP(ZEROMOREWS) {
+#ifdef PEGVM_USE_ZEROMOVEWS
     char c;
 L_head2:
     c = *cur;
@@ -506,6 +506,7 @@ L_head2:
       goto L_head2;
     }
     DISPATCH_NEXT;
+#endif
   }
   OP(REPEATANY) {
     IREPEATANY *inst = (IREPEATANY *)pc;

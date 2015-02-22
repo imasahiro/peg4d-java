@@ -8,6 +8,7 @@
 // #define PEGVM_USE_CONDBRANCH
 #define PEGVM_USE_CHARRANGE
 #define PEGVM_USE_MAPPEDCHOISE_DIRECT_JMP
+// #define PEGVM_USE_ZEROMOREWS
 
 typedef bitset_t *bitset_ptr_t;
 
@@ -226,6 +227,7 @@ static void Emit_CHARSET(PegVMInstruction *inst, ByteCodeLoader *loader) {
   ICHARSET *ir = (ICHARSET *)inst;
   ir->base.opcode = OPCODE_ICHARSET;
   ir->set = (bitset_ptr_t)__malloc(sizeof(bitset_t));
+  bitset_init(ir->set);
   for (int i = 0; i < len; i++) {
     unsigned c = Loader_Read32(loader);
     bitset_set(ir->set, c);
@@ -247,6 +249,7 @@ static void Emit_CHARRANGE(PegVMInstruction *inst, ByteCodeLoader *loader) {
     ICHARSET *ir2 = (ICHARSET *)ir;
     ir2->base.opcode = OPCODE_ICHARSET;
     ir2->set = (bitset_ptr_t)__malloc(sizeof(bitset_t));
+    bitset_init(ir2->set);
     for (unsigned i = begin; i <= end; i++) {
       bitset_set(ir2->set, i);
     }
@@ -742,6 +745,7 @@ static void Emit_NOTCHARSET(PegVMInstruction *inst, ByteCodeLoader *loader) {
   INOTCHARSET *ir = (INOTCHARSET *)inst;
   ir->base.opcode = OPCODE_INOTCHARSET;
   ir->set = (bitset_ptr_t)__malloc(sizeof(bitset_t));
+  bitset_init(ir->set);
   for (int i = 0; i < len; i++) {
     unsigned c = Loader_Read32(loader);
     bitset_set(ir->set, c);
@@ -770,6 +774,7 @@ static void Emit_NOTBYTERANGE(PegVMInstruction *inst, ByteCodeLoader *loader) {
     INOTCHARSET *ir2 = (INOTCHARSET *)ir;
     ir2->base.opcode = OPCODE_INOTCHARSET;
     ir2->set = (bitset_ptr_t)__malloc(sizeof(bitset_t));
+    bitset_init(ir2->set);
     for (unsigned i = begin; i <= end; i++) {
       bitset_set(ir2->set, i);
     }
@@ -812,6 +817,7 @@ static void Emit_OPTIONALCHARSET(PegVMInstruction *inst,
   IOPTIONALCHARSET *ir = (IOPTIONALCHARSET *)inst;
   ir->base.opcode = OPCODE_IOPTIONALCHARSET;
   ir->set = (bitset_ptr_t)__malloc(sizeof(bitset_t));
+  bitset_init(ir->set);
   for (int i = 0; i < len; i++) {
     unsigned c = Loader_Read32(loader);
     bitset_set(ir->set, c);
@@ -838,6 +844,7 @@ static void Emit_OPTIONALBYTERANGE(PegVMInstruction *inst,
     IOPTIONALCHARSET *ir2 = (IOPTIONALCHARSET *)ir;
     ir2->base.opcode = OPCODE_IOPTIONALCHARSET;
     ir2->set = (bitset_ptr_t)__malloc(sizeof(bitset_t));
+    bitset_init(ir2->set);
     for (unsigned i = begin; i <= end; i++) {
       bitset_set(ir2->set, i);
     }
@@ -883,6 +890,7 @@ static void Emit_ZEROMORECHARSET(PegVMInstruction *inst,
   IZEROMORECHARSET *ir = (IZEROMORECHARSET *)inst;
   ir->base.opcode = OPCODE_IZEROMORECHARSET;
   ir->set = (bitset_ptr_t)__malloc(sizeof(bitset_t));
+  bitset_init(ir->set);
   for (int i = 0; i < len; i++) {
     unsigned c = Loader_Read32(loader);
     bitset_set(ir->set, c);
@@ -896,6 +904,18 @@ typedef struct IZEROMOREWS {
 static void Emit_ZEROMOREWS(PegVMInstruction *inst, ByteCodeLoader *loader) {
   IZEROMOREWS *ir = (IZEROMOREWS *)inst;
   ir->base.opcode = OPCODE_IZEROMOREWS;
+#ifndef PEGVM_USE_ZEROMOREWS
+  {
+    IZEROMORECHARSET *ir2 = (IZEROMORECHARSET *)inst;
+    ir2->base.opcode = OPCODE_IZEROMORECHARSET;
+    ir2->set = (bitset_ptr_t)__malloc(sizeof(bitset_t));
+    bitset_init(ir2->set);
+    bitset_set(ir2->set, 9);
+    bitset_set(ir2->set, 10);
+    bitset_set(ir2->set, 11);
+    bitset_set(ir2->set, 32);
+  }
+#endif
 }
 #define OPCODE_IREPEATANY 60
 typedef struct IREPEATANY {

@@ -1,6 +1,12 @@
 #include <stdint.h>
 
+#define BITSET_USE_ULONG 1
+#if defined(BITSET_USE_ULONG)
 typedef unsigned long bitset_entry_t;
+#elif defined(BITSET_USE_UINT)
+typedef unsigned bitset_entry_t;
+#endif
+
 #define BITS (sizeof(bitset_entry_t) * 8)
 typedef struct bitset_t {
     bitset_entry_t data[256/BITS];
