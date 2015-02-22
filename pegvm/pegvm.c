@@ -351,6 +351,10 @@ ParsingObject nez_Parse(ParsingContext context, PegVMInstruction *inst) {
 }
 #define PEGVM_STAT 5
 void nez_ParseStat(ParsingContext context, PegVMInstruction *inst) {
+#define PRINT_SHORT_LOG
+#ifdef PRINT_SHORT_LOG
+  fprintf(stderr, "ErapsedTime: ");
+#endif
   for (int i = 0; i < PEGVM_STAT; i++) {
     uint64_t start, end;
     MemoryPool_Reset(context->mpool);
@@ -359,10 +363,19 @@ void nez_ParseStat(ParsingContext context, PegVMInstruction *inst) {
       nez_PrintErrorInfo("parse error");
     }
     end = timer();
-    fprintf(stderr, "ErapsedTime: %llu msec\n", (unsigned long long)end - start);
+    fprintf(stderr,
+#ifdef PRINT_SHORT_LOG
+        "%llu msec, ",
+#else
+        "ErapsedTime: %llu msec\n",
+#endif
+        (unsigned long long)end - start);
     nez_DisposeObject(context->left);
     context->pos = 0;
   }
+#ifdef PRINT_SHORT_LOG
+  fprintf(stderr, "\n");
+#endif
 }
 
 void nez_Match(ParsingContext context, PegVMInstruction *inst) {
