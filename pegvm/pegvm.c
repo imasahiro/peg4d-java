@@ -208,17 +208,17 @@ void nez_DisposeInstruction(PegVMInstruction *inst, long length) {
     case OPCODE_ISTRING2:
     case OPCODE_ISTRING4: {
       ISTRING4 *ir = (ISTRING4 *)inst;
-      free(ir->chardata);
+      pstring_delete(ir->chardata);
       break;
     }
     case OPCODE_ITAG: {
       ITAG *ir = (ITAG *)inst;
-      free(ir->chardata);
+      pstring_delete(ir->chardata);
       break;
     }
     case OPCODE_IVALUE: {
       IVALUE *ir = (IVALUE *)inst;
-      free(ir->chardata);
+      pstring_delete(ir->chardata);
       break;
     }
     case OPCODE_IMAPPEDCHOICE:
@@ -235,7 +235,7 @@ void nez_DisposeInstruction(PegVMInstruction *inst, long length) {
     }
     case OPCODE_INOTSTRING: {
       INOTSTRING *ir = (INOTSTRING *)inst;
-      free(ir->cdata);
+      pstring_delete(ir->cdata);
       break;
     }
     case OPCODE_IOPTIONALCHARSET: {
@@ -245,7 +245,7 @@ void nez_DisposeInstruction(PegVMInstruction *inst, long length) {
     }
     case OPCODE_IOPTIONALSTRING: {
       IOPTIONALSTRING *ir = (IOPTIONALSTRING *)inst;
-      free(ir->cdata);
+      pstring_delete(ir->cdata);
       break;
     }
     case OPCODE_IZEROMORECHARSET: {

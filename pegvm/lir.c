@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include "bitset.c"
+#include "pstring.h"
 
 // #define PEGVM_USE_CONDBRANCH
 #define PEGVM_USE_CHARRANGE
@@ -18,10 +19,8 @@ typedef struct ByteCodeLoader {
   PegVMInstruction *head;
 } ByteCodeLoader;
 
-typedef struct pegvm_string {
-  unsigned len;
-  char text[1];
-} *pegvm_string_ptr_t;
+// typedef pstring_t *pegvm_string_ptr_t;
+typedef const char *pegvm_string_ptr_t;
 
 typedef struct inst_table_t {
   PegVMInstruction *table[256];
@@ -86,19 +85,16 @@ static PegVMInstruction *Loader_GetJumpAddr(ByteCodeLoader *loader, PegVMInstruc
 
 static pegvm_string_ptr_t Loader_ReadString(ByteCodeLoader *loader) {
   uint32_t len = Loader_Read16(loader);
-  pegvm_string_ptr_t str = (pegvm_string_ptr_t)__malloc(sizeof(*str) - 1 + len);
-  str->len = len;
+  pegvm_string_ptr_t str = pstring_alloc2(len);
   for (uint32_t i = 0; i < len; i++) {
-    str->text[i] = Loader_Read32(loader);
+    ((char *)str)[i] = Loader_Read32(loader);
   }
   return str;
 }
 
 static pegvm_string_ptr_t Loader_ReadName(ByteCodeLoader *loader) {
   uint32_t len = Loader_Read16(loader);
-  pegvm_string_ptr_t str = (pegvm_string_ptr_t)__malloc(sizeof(*str) - 1 + len);
-  str->len = len;
-  memcpy(str->text, loader->input+loader->info->pos, len);
+  pegvm_string_ptr_t str = pstring_alloc(loader->input+loader->info->pos, len);
   loader->info->pos += len;
   return str;
 }

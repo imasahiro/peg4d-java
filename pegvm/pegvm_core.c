@@ -1,20 +1,20 @@
 /* pegvm.c */
 
-static int pegvm_string_equal(pegvm_string_ptr_t str, const char *t) {
-  int len = str->len;
-  const char *p = str->text;
-  const char *end = p + len;
-#if 0
-  return (strncmp(p, t, len) == 0) ? len : 0;
-#else
-  while (p < end) {
-    if (*p++ != *t++) {
-      return 0;
-    }
-  }
-  return len;
-#endif
-}
+// static int pegvm_string_equal(pegvm_string_ptr_t str, const char *t) {
+//   int len = pstring_length(str);
+//   const char *p = str;
+//   const char *end = p + len;
+// #if 0
+//   return (strncmp(p, t, len) == 0) ? len : 0;
+// #else
+//   while (p < end) {
+//     if (*p++ != *t++) {
+//       return 0;
+//     }
+//   }
+//   return len;
+// #endif
+// }
 
 static ParsingObject P4D_newObject2(ParsingContext context, const char *cur, MemoryPool mpool, ParsingObject left)
 {
@@ -50,6 +50,7 @@ static ParsingObject P4D_newObject2(ParsingContext context, const char *cur, Mem
 #define RET           goto *GET_ADDR(pc = *POP_IP())
 
 #define OP(OP) PEGVM_OP_##OP:
+// #define OP(OP) PEGVM_OP_##OP: fprintf(stderr, "" #OP ":%d ctx=%p, pc=%p, sp=%p, cur=%p\n", __LINE__, context, pc, sp, cur);
 long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
   static const void *table[] = {
 #define DEFINE_TABLE(NAME) &&PEGVM_OP_##NAME,
@@ -178,9 +179,10 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
   OP(STRING2);
   OP(STRING4) {
     ISTRING *inst = (ISTRING *)pc;
-    int next;
-    if ((next = pegvm_string_equal(inst->chardata, cur)) > 0) {
-      cur += next;
+    pegvm_string_ptr_t text = inst->chardata;
+    unsigned len = pstring_length(text);
+    if (pstring_starts_with(cur, text, len)  == 1) {
+      cur += len;
       DISPATCH_NEXT;
     }
     else {
@@ -304,12 +306,12 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
   }
   OP(TAG) {
     ITAG *inst = (ITAG *)pc;
-    LEFT->tag = (const char *)&inst->chardata->text;
+    LEFT->tag = inst->chardata;
     DISPATCH_NEXT;
   }
   OP(VALUE) {
     ITAG *inst = (ITAG *)pc;
-    LEFT->value = (const char *)&inst->chardata->text;
+    LEFT->value = inst->chardata;
     DISPATCH_NEXT;
   }
   OP(MAPPEDCHOICE) {
@@ -438,7 +440,8 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
   }
   OP(NOTSTRING) {
     INOTSTRING *inst = (INOTSTRING *)pc;
-    if (pegvm_string_equal(inst->cdata, cur) > 0) {
+    pegvm_string_ptr_t text = inst->cdata;
+    if (pstring_starts_with(cur, text, pstring_length(text)) == 1) {
       failflag = 1;
       JUMP(inst->jump);
     }
@@ -471,7 +474,9 @@ long nez_VM_Execute(ParsingContext context, PegVMInstruction *inst) {
 
   OP(OPTIONALSTRING) {
     IOPTIONALSTRING *inst = (IOPTIONALSTRING *)pc;
-    cur += pegvm_string_equal(inst->cdata, cur);
+    pegvm_string_ptr_t text = inst->cdata;
+    unsigned len = pstring_length(text);
+    cur += pstring_starts_with(cur, text, len) ? len : 0;
     DISPATCH_NEXT;
   }
   OP(ZEROMOREBYTERANGE) {

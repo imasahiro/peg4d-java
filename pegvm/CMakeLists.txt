@@ -2,6 +2,7 @@ include(CheckTypeSize)
 include(CheckIncludeFiles)
 include(CheckSymbolExists)
 include(CheckLibraryExists)
+include(CheckCCompilerFlag)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -29,6 +30,20 @@ else(MSVC)
 	SET(CMAKE_CXX_FLAGS_RELEASE    "${CMAKE_CXX_FLAGS} -O3 -g")
 	SET(CMAKE_CXX_FLAGS_DEBUG      "${CMAKE_CXX_FLAGS} -O0 -g3")
 	SET(CMAKE_CXX_FLAGS_COMPRESSED "${CMAKE_CXX_FLAGS} -Os -g0")
+endif(MSVC)
+
+if(MSVC)
+    CHECK_C_COMPILER_FLAG(/arch:AVX HAVE_AVX2)
+    if(HAVE_AVX2)
+        set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   /arch:AVX")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
+    endif(HAVE_AVX2)
+else(MSVC)
+    CHECK_C_COMPILER_FLAG(-mavx HAVE_AVX2)
+    if(HAVE_AVX2)
+        set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -mavx2 -march=core-avx2")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2 -march=core-avx2")
+    endif(HAVE_AVX2)
 endif(MSVC)
 
 ## Source Code settings
